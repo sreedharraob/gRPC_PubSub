@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -17,7 +18,7 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v", err)
+		return fmt.Errorf("pubsub.NewClient: %v \n", err)
 	}
 
 	var wg sync.WaitGroup
@@ -32,25 +33,25 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 				"username": "gcp-sree",
 				"action":   "row-delete-" + strconv.Itoa(i),
 			},
-		})
+		})		
 
 		wg.Add(1)
 		go func(i int, res *pubsub.PublishResult) {
 			defer wg.Done()
 			id, err := result.Get(ctx)
 			if err != nil {
-				fmt.Fprintf(w, "Failed to publish :%v", err)
+				fmt.Fprintf(w, "Failed to publish :%v\n", err)
 				atomic.AddUint64(&totalErrors, 1)
 				return
 			}
-			fmt.Fprintf(w, "Published message %d; msg ID: %v\n", i, id)
+			fmt.Fprintf(w, "Published message %d; msg ID: %v\n", i, id)					
 		}(i, result)
 	}
 
 	wg.Wait()
 
 	if totalErrors > 0 {
-		return fmt.Errorf("%d of %d messages did not publish successfully", totalErrors, n)
+		return fmt.Errorf("\n %d of %d messages did not publish successfully", totalErrors, n)
 	}
 	return nil
 }
@@ -64,4 +65,7 @@ func main() {
 	var w bytes.Buffer
 	publishMessages(&w, projectID, topicID, msg, noOfMessages)
 	fmt.Println(&w)
+
+	fmt.Println("Press Enter to close")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }

@@ -7,8 +7,9 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"strconv"	
+	"strconv"
 	"time"
+	"bufio"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -17,14 +18,14 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v", err)
+		return fmt.Errorf("pubsub.NewClient: %v \n", err)
 	}
 	defer client.Close()
 
 	sub := client.Subscription(subID)
 	sub.ReceiveSettings.Synchronous = false
 	sub.ReceiveSettings.NumGoroutines = runtime.NumCPU()
-	fmt.Fprintf(w, "number of CPU in client: %q\n", strconv.Itoa(runtime.NumCPU()))
+	fmt.Fprintf(w, "\n number of CPU in client: %q\n", strconv.Itoa(runtime.NumCPU()))
 
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
@@ -35,7 +36,7 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 		for {
 			select {
 			case msg := <-messagesChannel:
-				fmt.Fprintf(w, "\n Got message :%q\n", string(msg.Data))
+				fmt.Fprintf(w, "\nGot message :%q\n", string(msg.Data))
 				for k, v := range msg.Attributes {
 					fmt.Fprintf(w, "%s=\"%s\"\n", k, v)
 				}
@@ -50,7 +51,7 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 		messagesChannel <- msg
 	})
 	if err != nil {
-		return fmt.Errorf("Recieve: %v", err)
+		return fmt.Errorf("\n Recieve: %v", err)
 	}
 	close(messagesChannel)
 
@@ -60,7 +61,7 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 func listTopics(client pubsub.Client, topicID string) (*pubsub.Topic, error) {
 	t := client.Topic(topicID)
 	if t == nil {
-		return nil, fmt.Errorf("No topic found with id %d", topicID)
+		return nil, fmt.Errorf("\n No topic found with id %q", topicID)
 	}
 	return t, nil
 }
@@ -72,4 +73,7 @@ func main() {
 	var w bytes.Buffer
 	pullMessages(&w, projectID, subID)
 	fmt.Println(&w)
+
+	fmt.Println("Press Enter to close")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
