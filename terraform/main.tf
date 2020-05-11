@@ -69,7 +69,7 @@ resource "google_service_account_key" "pubsub_sa_key" {
 }
 
 resource "local_file" "pubsub_sa_key_json" {
-  content  = base64decode(google_service_account_key.pubsub_sa_key.private_key)
+  content = base64decode(google_service_account_key.pubsub_sa_key.private_key)
   #filename = "${path.module}/../../../../../../../.ssh/gcp_pubsub_sa.json"
   filename = "${path.module}/gcp_pubsub_sa.json"
 }
