@@ -1,5 +1,0 @@
-package subscriptions
-
-import (
-	"fmt"
-)

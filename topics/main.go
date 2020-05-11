@@ -1,9 +1,11 @@
-package topics
+package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -24,7 +26,7 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 
 	for i := 0; i < n; i++ {
 		result := t.Publish(ctx, &pubsub.Message{
-			Data: []byte(msg + strconv.Itoa(i)),
+			Data: []byte(msg + "-" + strconv.Itoa(i)),
 			Attributes: map[string]string{
 				"origin":   "golang",
 				"username": "gcp-sree",
@@ -51,4 +53,15 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 		return fmt.Errorf("%d of %d messages did not publish successfully", totalErrors, n)
 	}
 	return nil
+}
+
+func main() {
+	projectID := os.Getenv("PROJECT_ID")
+	topicID := os.Getenv("TOPIC_ID")
+	msg := os.Getenv("TOPIC_MSG")
+	noOfMessages := 100
+
+	var w bytes.Buffer
+	publishMessages(&w, projectID, topicID, msg, noOfMessages)
+	fmt.Println(&w)
 }
