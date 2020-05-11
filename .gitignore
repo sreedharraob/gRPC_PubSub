@@ -19,3 +19,6 @@ terraform/.terraform
 terraform/.terraform/*
 terraform/terraform.tfstate.*
 terraform/provider.tf
+
+#service account keys
+*.json

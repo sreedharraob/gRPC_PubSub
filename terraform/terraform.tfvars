@@ -1,6 +1,6 @@
 project                  = "sree-dev-01"
 region                   = "europe-west2"
-pubsub_topic_name        = "grpc-topic"
+pubsub_topic_name        = "grpc-topic-01"
 pubsub_subscription_name = "grpc-sub-01"
 pubsub_sa_name           = "grpc-pubsub-sa"
 pubsub_sa_topic_roles = [
