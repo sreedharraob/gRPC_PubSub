@@ -18,7 +18,7 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v \n", err)
+		return fmt.Errorf("\n pubsub.NewClient: %v", err)
 	}
 
 	var wg sync.WaitGroup

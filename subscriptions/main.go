@@ -18,7 +18,7 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %v \n", err)
+		return fmt.Errorf("\n pubsub.NewClient: %v", err)
 	}
 	defer client.Close()
 
