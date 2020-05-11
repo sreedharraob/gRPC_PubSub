@@ -17,6 +17,5 @@
 #Terraform
 terraform/.terraform
 terraform/.terraform/*
-terraform.*
-terraform.tfstate.*
-provider.tf
+terraform/terraform.tfstate.*
+terraform/provider.tf
