@@ -11,7 +11,7 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
+func publish(w io.Writer, projectID, topicID, msg string, n int) error {
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
