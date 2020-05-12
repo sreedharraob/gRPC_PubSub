@@ -40,6 +40,7 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 				for k, v := range msg.Attributes {
 					fmt.Fprintf(w, "%s=\"%s\"\n", k, v)
 				}
+				msg.Nack
 				msg.Ack()
 			case <-ctx.Done():
 				return
