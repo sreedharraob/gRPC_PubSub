@@ -43,7 +43,7 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 				msg.Nack
 				msg.Ack()
 			case <-ctx.Done():
-				return
+				return				
 			}
 		}
 	}()
