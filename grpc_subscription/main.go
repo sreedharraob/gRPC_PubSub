@@ -1,13 +1,14 @@
 package main
 
 import (
-	"bufio"
+	//"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"time"
 	//"strconv"
 	//"sync"
 	//"runtime"
@@ -24,7 +25,6 @@ func streamingPullMessages(w io.Writer, projectID, subID string) error {
 	if err != nil {
 		return fmt.Errorf("\n pubsub.NewClient: %v", err)
 	}
-	defer client.Close()
 	fmt.Fprintf(w, "Connected to subscriber client successfully \n")
 
 	stream, err := client.StreamingPull(ctx)
@@ -42,25 +42,24 @@ func streamingPullMessages(w io.Writer, projectID, subID string) error {
 			//AckIds:       receivedAckIds,
 		})
 		for _, req := range reqs {
-			if err := stream.Send(req); err != nil {
+			err := stream.Send(req)
+			if err != nil {
 				//return fmt.Errorf("unable to send pull request: %v \n", err)
 				log.Fatalf("error: %s", err)
 			}
 		}
 		stream.CloseSend()
 	}()
-
 	for {
 		resp, err := stream.Recv()
-		//fmt.Fprintf(w, "received messages count: %s \n", strconv.Itoa(len(resp.ReceivedMessages)))
 		if err == io.EOF {
-			
 			break
 		}
 		if err != nil {
 			return fmt.Errorf("\n unable to process the request: %v", err)
 		}
 		for _, recvMsg := range resp.ReceivedMessages {
+			log.Println(recvMsg)
 			fmt.Fprintf(w, "\nGot message :%q\n", string(recvMsg.Message.Data))
 			for k, v := range recvMsg.Message.Attributes {
 				fmt.Fprintf(w, "%s=\"%s\"\n", k, v)
@@ -71,6 +70,41 @@ func streamingPullMessages(w io.Writer, projectID, subID string) error {
 			fmt.Fprintf(w, "Message Published Time: %s \n", recvMsg.Message.PublishTime)
 		}
 	}
+	return nil
+}
+
+func pullMessages(w io.Writer, projectID, subID string) error {
+	ctx := context.Background()
+	client, err := pubsubgrpc.NewSubscriberClient(ctx)
+	if err != nil {
+		return fmt.Errorf("\n pubsub.NewClient: %v", err)
+	}
+	fmt.Fprintf(w, "Connected to subscriber client successfully \n")
+
+	subscriptionID := fmt.Sprintf("projects/%s/subscriptions/%s", projectID, subID)
+	req := &pubsubpb.PullRequest{
+		Subscription: subscriptionID,
+		MaxMessages:  400,
+	}
+	resp, err := client.Pull(ctx, req)
+	if err != nil {
+		return fmt.Errorf("\n unable to pull request: %v", err)
+	}
+
+	var receivedAckIds []string
+	for _, recvMsg := range resp.ReceivedMessages {
+		fmt.Fprintf(w, "\n Got message :%q\n", string(recvMsg.Message.Data))
+		for k, v := range recvMsg.Message.Attributes {
+			fmt.Fprintf(w, "%s=\"%s\"\n", k, v)
+		}		
+		fmt.Fprintf(w, "MessageId: %s \n Message Published Time: %s \n ", recvMsg.Message.MessageId, recvMsg.Message.PublishTime)		
+		receivedAckIds = append(receivedAckIds, recvMsg.AckId)
+	}
+	ackRequest := &pubsubpb.AcknowledgeRequest{
+		Subscription: subscriptionID,
+		AckIds:       receivedAckIds,
+	}
+	client.Acknowledge(ctx, ackRequest)
 	return nil
 }
 
@@ -97,13 +131,17 @@ func main() {
 	// }
 
 	var w bytes.Buffer
+	start := time.Now()
 	err := streamingPullMessages(&w, projectID, subID)
+	//err := pullMessages(&w, projectID, subID)
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println(&w)
 	}
+	elapsed := time.Since(start)
+	fmt.Printf("grpc sub pull took %s", elapsed)
 
-	fmt.Println("Press Enter to close")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	//fmt.Println("Press Enter to close")
+	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 }

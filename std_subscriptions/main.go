@@ -9,8 +9,7 @@ import (
 	"runtime"
 	"strconv"
 	"time"
-	"bufio"
-
+	//"bufio"
 	"cloud.google.com/go/pubsub"
 )
 
@@ -40,10 +39,9 @@ func pullMessages(w io.Writer, projectID, subID string) error {
 				for k, v := range msg.Attributes {
 					fmt.Fprintf(w, "%s=\"%s\"\n", k, v)
 				}
-				msg.Nack
 				msg.Ack()
 			case <-ctx.Done():
-				return				
+				return
 			}
 		}
 	}()
@@ -72,9 +70,16 @@ func main() {
 	subID := os.Getenv("SUB_ID")
 
 	var w bytes.Buffer
-	pullMessages(&w, projectID, subID)
-	fmt.Println(&w)
+	start := time.Now()
+	err := pullMessages(&w, projectID, subID)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(&w)
+	}
+	elapsed := time.Since(start)
+	fmt.Printf("std sub pull took %s \n", elapsed)
 
-	fmt.Println("Press Enter to close")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	//fmt.Println("Press Enter to close")
+	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 }

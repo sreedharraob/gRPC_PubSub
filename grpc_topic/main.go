@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	//"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 	//"runtime"
 	"sync/atomic"
 
@@ -68,10 +69,11 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 }
 
 func main() {
+
 	projectID := os.Getenv("PROJECT_ID")
 	topicID := os.Getenv("TOPIC_ID")
 	msg := os.Getenv("TOPIC_MSG")
-	noOfMessages := 200
+	noOfMessages := 1000
 
 	if &projectID == nil || &topicID == nil || &msg == nil {
 		log.Fatalln("Unable to find required args in env variables")
@@ -91,13 +93,16 @@ func main() {
 	// }
 
 	var w bytes.Buffer
+	start := time.Now()
 	err := publishMessages(&w, projectID, topicID, msg, noOfMessages)
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println(&w)
 	}
+	elapsed := time.Since(start)
+	fmt.Printf("grpc topic publish took %s \n", elapsed)
 
-	fmt.Println("Press Enter to close")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	//fmt.Println("Press Enter to close")
+	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 }

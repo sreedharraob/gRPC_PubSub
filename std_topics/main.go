@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	//"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -33,7 +34,7 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 				"username": "gcp-sree",
 				"action":   "row-delete-" + strconv.Itoa(i),
 			},
-		})		
+		})
 
 		wg.Add(1)
 		go func(i int, res *pubsub.PublishResult) {
@@ -44,7 +45,7 @@ func publishMessages(w io.Writer, projectID, topicID, msg string, n int) error {
 				atomic.AddUint64(&totalErrors, 1)
 				return
 			}
-			fmt.Fprintf(w, "Published message %d; msg ID: %v\n", i, id)					
+			fmt.Fprintf(w, "Published message %d; msg ID: %v\n", i, id)
 		}(i, result)
 	}
 
@@ -60,12 +61,19 @@ func main() {
 	projectID := os.Getenv("PROJECT_ID")
 	topicID := os.Getenv("TOPIC_ID")
 	msg := os.Getenv("TOPIC_MSG")
-	noOfMessages := 100
+	noOfMessages := 200
 
 	var w bytes.Buffer
-	publishMessages(&w, projectID, topicID, msg, noOfMessages)
-	fmt.Println(&w)
+	start := time.Now()
+	err := publishMessages(&w, projectID, topicID, msg, noOfMessages)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(&w)
+	}
+	elapsed := time.Since(start)
+	fmt.Printf("std topic publish took %s \n", elapsed)
 
-	fmt.Println("Press Enter to close")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
+	//fmt.Println("Press Enter to close")
+	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
