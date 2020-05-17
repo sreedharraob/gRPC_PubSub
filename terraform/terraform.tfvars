@@ -1,4 +1,4 @@
-project                  = "sree-dev-01"
+project                  = ""
 region                   = "europe-west2"
 pubsub_topic_name        = "grpc-topic-01"
 pubsub_subscription_name = "grpc-sub-01"
